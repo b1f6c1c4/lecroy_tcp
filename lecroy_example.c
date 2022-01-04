@@ -33,7 +33,6 @@ See "lecroy_tcp.c" and "lecroy_tcp.h" for additional comments and usage
 #include "lecroy_tcp.h"
 #include <stdio.h>
 #include <string.h>
-using namespace std;
 
 #define	MAX_ST	512	/* maximum message string. no picked from thin air */
 

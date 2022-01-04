@@ -54,7 +54,6 @@ See "lecroy_tcp.h" for additional comments and usage
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
-using namespace std;
 
 static BOOL	LECROY_TCP_connected_flag = FALSE;
 
