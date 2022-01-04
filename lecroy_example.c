@@ -49,27 +49,32 @@ int main ()
 	/* OUR_SCOPE_IP is #define'd in lecroy_tcp.h, so is MAX_TCP_CONNECT */
 	sprintf(ip_address, OUR_SCOPE_IP);
 
-	printf("\nlecroy_example: about to connect to DSO...\n");
+	fprintf(stderr, "\nlecroy_example: about to connect to DSO...\n");
 
 	/* how to "set up the scope for ethernet communication" */
 	sockfd=LECROY_TCP_connect(ip_address, MAX_TCP_CONNECT);
 	if (sockfd<0) {
-		printf("\nCould not connect to the scope on IP: %s\n",ip_address);
+		fprintf(stderr, "\nCould not connect to the scope on IP: %s\n",ip_address);
 		return 1;
 		}
 
-	printf("....connected.\n");
+	fprintf(stderr, "....connected.\n");
 
 	/* example of writing to the scope) */
-	strcpy(outbuf,"*idn?\n");
+	strcpy(outbuf,"C1:PAVA? FREQ\n");
 	LECROY_TCP_write(sockfd, outbuf);
-	printf ("Request to scope:\n%s\n", outbuf);
+	fprintf(stderr, "Request to scope:\n%s\n", outbuf);
 
 	/* example of getting the raw data back from the scope */
 	LECROY_TCP_read(sockfd, inbuf, sizeof(inbuf), MAX_TCP_READ);
-	printf ("Scope returned:\n%s\n", inbuf);
+	fprintf(stderr, "Scope returned:\n%s\n", inbuf);
+	{
+		char *id = strchr(inbuf, ',');
+		*strchr(id, ',') = '\0';
+		puts(id);
+	}
 
 	LECROY_TCP_disconnect(sockfd);
-	printf("Successfully disconnected... bye!\n");
+	fprintf(stderr, "Successfully disconnected... bye!\n");
 	return 0;
 }
