@@ -32,11 +32,12 @@ See "lecroy_tcp.c" and "lecroy_tcp.h" for additional comments and usage
 
 #include "lecroy_tcp.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define	MAX_ST	512	/* maximum message string. no picked from thin air */
 
-int main ()
+int main (int argc, char *argv[])
 {
 	char ip_address[50];
 	int sockfd;
@@ -60,18 +61,40 @@ int main ()
 
 	fprintf(stderr, "....connected.\n");
 
-	/* example of writing to the scope) */
-	strcpy(outbuf,"C1:PAVA? FREQ\n");
-	LECROY_TCP_write(sockfd, outbuf);
-	fprintf(stderr, "Request to scope:\n%s\n", outbuf);
-
-	/* example of getting the raw data back from the scope */
-	LECROY_TCP_read(sockfd, inbuf, sizeof(inbuf), MAX_TCP_READ);
-	fprintf(stderr, "Scope returned:\n%s\n", inbuf);
 	{
-		char *id = strchr(inbuf, ',');
-		*strchr(id, ',') = '\0';
-		puts(id);
+		printf("TAP\tRAW");
+		for (unsigned ds = 2; ds <= 12; ds += 2)
+			printf("\tDiv%u", ds);
+		printf("\n");
+	}
+	for (unsigned tap = 0; tap < 32; tap++) {
+		printf("%u", tap);
+		for (unsigned ds = 0; ds <= 12; ds += 2) {
+			char cmd[4096];
+			{
+				int cx = 4096;
+				for (int i = 1; i < argc; i++)
+					cx -= snprintf(cmd + 4096 - cx, cx, "'%s' ", argv[i]);
+				cx -= snprintf(cmd + 4096 - cx, cx, "--tap %u --ds %u", tap, ds ? ds : 1);
+			}
+			fprintf(stderr, "Executing %s\n", cmd);
+
+			/* example of writing to the scope) */
+			strcpy(outbuf,"C1:PAVA? FREQ\n");
+			LECROY_TCP_write(sockfd, outbuf);
+			fprintf(stderr, "Request to scope:\n%s\n", outbuf);
+
+			/* example of getting the raw data back from the scope */
+			LECROY_TCP_read(sockfd, inbuf, sizeof(inbuf), MAX_TCP_READ);
+			fprintf(stderr, "Scope returned:\n%s\n", inbuf);
+			{
+				char *id = strchr(inbuf, ',');
+				if (id) *strchr(id, ',') = '\0';
+				else strcpy(inbuf, "ERR");
+				printf("\t%s", inbuf);
+			}
+		}
+		printf("\n");
 	}
 
 	LECROY_TCP_disconnect(sockfd);
